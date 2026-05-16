@@ -1,0 +1,7 @@
+*.egg-info/
+
+rebuild.sh
+
+dist
+
+.idea
