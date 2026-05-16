@@ -5,3 +5,5 @@ rebuild.sh
 dist
 
 .idea
+
+__pycache__
