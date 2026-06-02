@@ -1,8 +1,11 @@
+from typing import TypeVar
+
 from spryng.injection.injection_graph import InjectionGraph
 from spryng.models.descriptors import ComponentDescriptor, DependencyDescriptor
 from spryng.models.injection import InjectionNode, InjectionDependency
 from spryng.models.multi_value_dict import MultiValueDict
 
+T = TypeVar("T")
 
 class InjectionGraphBuilder:
     dependency_clazzes: set[type]
@@ -73,6 +76,35 @@ class InjectionGraphBuilder:
             )
 
         return graph
+
+    def get_decorated_types(self, decoration_type: type[T]) -> list[tuple[type, T]]:
+        result = []
+        for component_descriptor in self.component_descriptors:
+            meta = getattr(component_descriptor.clazz, "__spryng_meta__", None)
+
+            if meta is None:
+                continue
+
+            if not isinstance(meta, list):
+                raise TypeError("__spryng_meta__ must be a list")
+
+            decorations = [
+                decorator
+                for decorator in meta
+                if isinstance(decorator, decoration_type)
+            ]
+
+            if len(decorations) == 0:
+                continue
+
+            if len(decorations) > 1:
+                raise TypeError(f"{decoration_type} decoration applied more then once")
+
+            decoration = decorations[0]
+
+            result.append((component_descriptor.clazz, decoration))
+
+        return result
 
     def to_dict(self):
         return {
